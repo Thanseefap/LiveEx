@@ -1,0 +1,9 @@
+SLMap = {0: 0.3, 1: 1, 2: 0}
+adjustmentPercent = 0.4
+initialPremium = 100
+mtmStopLoss = 1600
+path = "C:\\Users\\Safwan PC\\banknifty_new\\"
+index = "BANKNIFTY"
+strikeDifference = 100
+noOfAdjustment = 1
+oneSideFullHitFlag = True
