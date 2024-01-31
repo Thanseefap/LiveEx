@@ -28,9 +28,9 @@ def getExpDate(tokenData):
 
 
 def getQuote(client, tokens):
-    inst_tokens = [{"instrument_token": "26009", "exchange_segment": "mcx_fo"}]
+    inst_tokens = [{"instrument_token": "26009", "exchange_segment": "nse_cm"}]
     for el in tokens:
-        inst_tokens.append({"instrument_token": el, "exchange_segment": "mcx_fo"})
+        inst_tokens.append({"instrument_token": el, "exchange_segment": "nse_fo"})
     noOfTry = 0
     while noOfTry <= 5:
         # get LTP and Market Depth Data
