@@ -1,4 +1,5 @@
 import pickle
+import time
 from datetime import datetime
 from urllib.request import urlopen
 import time as tm
@@ -10,26 +11,37 @@ import pandas as pd
 # on_message, on_open, on_close and on_error is a call back function we will provide the response for the subscribe method.
 # access_token is an optional one. If you have barrier token then pass and consumer_key and consumer_secret will be optional.
 # environment by default uat you can pass prod to connect to live server
-def login(on_message, on_error):
+def login():
     client = NeoAPI(consumer_key="q4RDblWAAJJ6udMrdIa9lS4IxGAa", consumer_secret="vQzreB9Z5NzLbMYA1t5I0kvnBYIa",
-                    environment='Prod', on_message=on_message, on_error=on_error, on_close=None, on_open=None)
+                    environment='Prod', on_message=None, on_error=None, on_close=None, on_open=None)
     client.login(mobilenumber="+919447497574", password="Haya@2020")
-    # client.configuration.edit_sid = "sid"
-    # client.configuration.edit_token = "token"
-    client.session_2fa(input())
+    client.configuration.edit_sid = "sid"
+    client.configuration.edit_token = "token"
+    # client.session_2fa(input())
     return client
 
 
 def getQuote(token, client):
     inst_tokens = [{"instrument_token": token, "exchange_segment": "nse_fo"}]
-    try:
-        # get LTP and Market Depth Data
-        ltp = client.quotes(instrument_tokens=inst_tokens, quote_type="ltp", isIndex=False)
+    tryNo = 0
+    while tryNo <= 5:
+        try:
+            # get LTP and Market Depth Data
+            ltp = client.quotes(instrument_tokens=inst_tokens, quote_type="ltp", isIndex=False)["message"][0]["ltp"]
 
-        # OR Quotes API can be accessed without completing login by passing session_token, sid, and server_id
-        return ltp
-    except Exception as e:
-        print("Exception when calling get Quote api->quotes: %s\n" % e)
+            # OR Quotes API can be accessed without completing login by passing session_token, sid, and server_id
+            if type(ltp) is not str:
+                print(ltp)
+                tryNo += 1
+                time.sleep(1)
+                continue
+            return float(ltp)
+        except Exception as e:
+            print("Exception when calling get Quote api->quotes: %s\n" % e)
+            tryNo += 1
+            time.sleep(1)
+            if tryNo == 5:
+                return e
 
 
 

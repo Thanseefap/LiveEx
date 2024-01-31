@@ -49,15 +49,12 @@ class LEG:
     def setLegPars(self, symbol, tokenData, priceDict, client):
         if self.token:
             liveUtils.order(client, self.token, getOppTransaction(self.transactionType), 1)
-            client.un_subscribe(instrument_tokens=[{"instrument_token": self.token, "exchange_segment": "nse_fo"}])
         self.Strike = symbol[-7:-2]
         self.token = tokenData[tokenData.symbol == symbol]["token"].iloc[0]
         self.premium = liveUtils.getQuote(self.token, client)
         if self.transactionType == "sell":
             self.setHedge(priceDict, 20, tokenData, client)
         liveUtils.order(client, self.token, self.transactionType, 1)
-        client.subscribe(instrument_tokens=[{"instrument_token": self.token, "exchange_segment": "nse_fo"}],
-                              isIndex=False, isDepth=False)
         print(self.type + " parameters set with strike {} and premium {}".format(self.Strike, self.premium), )
 
     def getLegProfit(self, priceDict):
@@ -100,13 +97,14 @@ class LEG:
             print(self.type + " leg adjustment at ", datetime.now())
             self.realizedProfit += self.getLegUnRealizedProfit(priceDict)
             if self.currentAdjustmentLevel == self.noOfAdjustments:
+                self.exit(client)
                 self.premium = 0
                 self.currentAdjustmentLevel += 1
                 self.hedge.realizedProfit += self.hedge.getLegUnRealizedProfit(priceDict)
                 self.hedge.premium = 0
                 return int(initialStrike)
             else:
-                symbol = self.getStrike(adjustmentPercent, None, tokenData, client)
+                symbol = self.getStrike(adjustmentPercent * self.premium, None, tokenData, client)
                 self.setLegPars(symbol, tokenData, priceDict, client)
                 # self.setHedge(priceDict, 20, tokenData)
                 self.currentAdjustmentLevel += 1
@@ -135,7 +133,7 @@ class LEG:
         self.hedge = LEG(self.type, transactionType) if not self.hedge else self.hedge
         self.hedge.type = self.type
         if hedgeDist > 10:
-            hedgestrike = str(round((int(self.Strike) + hedgeDist * self.shift)/500)*500)
+            hedgestrike = str(round((int(self.Strike) + hedgeDist * self.shift) / 500) * 500)
         else:
             hedgestrike = str(int(self.Strike) + hedgeDist * self.shift)
         symbol = index + self.exp_date + hedgestrike + self.type
@@ -146,3 +144,8 @@ class LEG:
     def updatePremium(self, priceDict):
         self.realizedProfit += self.getLegUnRealizedProfit(priceDict)
         self.premium = priceDict[self.token]
+
+    def exit(self, client):
+        print("exiting leg")
+        liveUtils.order(client, self.token, getOppTransaction(self.transactionType), 1)
+        self.hedge.exit(client)

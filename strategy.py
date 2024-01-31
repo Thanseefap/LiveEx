@@ -38,8 +38,8 @@ class Strategy:
             return
         self.straddle.reEnter(priceDict, spot, self.tokenData, client)
         self.straddle.adjust(priceDict, spot, self.tokenData, client)
-        ce = self.straddle.ce.data
-        pe = self.straddle.pe.data
+        # ce = self.straddle.ce.data
+        # pe = self.straddle.pe.data
         # print("mtm is {}, spot is {}, ce premium is {}, pe premium is {}".format(round(self.straddle.getProfit(time),2), spot, ce[ce.time==time]["close"].iloc[0], pe[pe.time==time]["close"].iloc[0]))
 
     def hedgeAdjustment(self, spot, priceDict):
