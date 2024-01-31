@@ -78,12 +78,12 @@ def connection():
             continue
 
 
-def order(client, instrument_token, transaction_type, quantity):
+def order(client, instrument_token, instrument_symbol, transaction_type, premium, quantity):
     try:
         # order_id = client.place_order(exchange_segment="nse_fo", product="NRML", price="", order_type="MKT", quantity=quantity, validity="DAY", trading_symbol="",
         #            transaction_type="", amo="", disclosed_quantity="", market_protection="", pf="", trigger_price="",
         #            tag="")
-        print(transaction_type + " : " + instrument_token)
+        print(transaction_type + " : " + str(instrument_symbol) + " at " + str(premium))
         # return order_id
     except Exception as e:
         print("Exception when calling OrderApi->place_order: %s\n" % e)

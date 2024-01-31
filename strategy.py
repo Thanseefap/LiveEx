@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import Straddle
 import Utils
 
@@ -33,14 +35,15 @@ class Strategy:
         return self.straddle.exit(priceDict)
 
     def piyushAdjustment(self, spot, priceDict, client):
+        if datetime.now().strftime("%S") in ["00", "01"]:
+            print(priceDict)
+            print("mtm is {} ce premium is {}, pe premium is {}".format(round(self.straddle.getProfit(priceDict),2), self.straddle.ce.getLegUnRealizedProfit(priceDict), self.straddle.pe.getLegUnRealizedProfit(priceDict)))
+            print("ce adjustment level - " + str(self.straddle.ce.currentAdjustmentLevel) + " pe adjustment level - " + str(self.straddle.pe.currentAdjustmentLevel))
         if Utils.oneSideFullHitFlag and (
                 self.straddle.pe.currentAdjustmentLevel == Utils.noOfAdjustment + 1 or self.straddle.ce.currentAdjustmentLevel == Utils.noOfAdjustment + 1):
             return
         self.straddle.reEnter(priceDict, spot, self.tokenData, client)
         self.straddle.adjust(priceDict, spot, self.tokenData, client)
-        # ce = self.straddle.ce.data
-        # pe = self.straddle.pe.data
-        # print("mtm is {}, spot is {}, ce premium is {}, pe premium is {}".format(round(self.straddle.getProfit(time),2), spot, ce[ce.time==time]["close"].iloc[0], pe[pe.time==time]["close"].iloc[0]))
 
     def hedgeAdjustment(self, spot, priceDict):
         ce = self.straddle.ce.data

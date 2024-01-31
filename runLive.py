@@ -18,7 +18,9 @@ def getTokenDataDateFromat(date):
 
 
 def getExpDate(tokenData):
-    expDates = tokenData[tokenData.instrumentName.str.contains("BANKNIFTY")].expiry.unique()
+    if Utils.index == "CRUDEOIL":
+        return "24FEB"
+    expDates = tokenData[tokenData.instrumentName.str.contains(Utils.index)].expiry.unique()
     for i in range(7):
         date = getTokenDataDateFromat((datetime.now() + timedelta(days=i)).strftime("%Y-%m-%d"))
         if date in expDates:
