@@ -20,8 +20,7 @@ class Strategy:
 
     def start(self, client, spot, priceDict):
         print("trade started")
-        atm = (round(float(spot) / Utils.strikeDifference) * Utils.strikeDifference)
-        self.straddle.setupStraddle(atm, client, self.tokenData, priceDict)
+        self.straddle.setupStraddle(spot, client, self.tokenData, priceDict)
         print("straddle mean is ", self.straddle.mean)
         # self.straddle.ce.setHedge(priceDict, 20, self.tokenData)
         # self.straddle.pe.setHedge(priceDict, 20, self.tokenData)

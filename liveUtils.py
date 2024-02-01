@@ -22,7 +22,7 @@ def login():
 
 
 def getQuote(token, client):
-    inst_tokens = [{"instrument_token": token, "exchange_segment": "nse_fo"}]
+    inst_tokens = [{"instrument_token": str(token), "exchange_segment": "nse_fo"}]
     tryNo = 0
     while tryNo <= 5:
         try:

@@ -50,10 +50,11 @@ class LEG:
     def setLegPars(self, symbol, tokenData, priceDict, client):
         if self.token:
             self.getsymbol()
-            liveUtils.order(client, self.token, self.getsymbol(), getOppTransaction(self.transactionType), self.premium, 1)
+            liveUtils.order(client, self.token, self.getsymbol(), getOppTransaction(self.transactionType), priceDict[self.token], 1)
         self.Strike = symbol[-7:-2]
         self.token = str(tokenData[tokenData.symbol == symbol]["token"].iloc[0])
         self.premium = liveUtils.getQuote(self.token, client)
+        priceDict[self.token] = self.premium
         if self.transactionType == "sell":
             self.setHedge(priceDict, 20, tokenData, client)
         liveUtils.order(client, self.token, self.getsymbol(), self.transactionType, self.premium, 1)
@@ -99,7 +100,7 @@ class LEG:
             print(self.type + " leg adjustment at ", datetime.now())
             self.realizedProfit += self.getLegUnRealizedProfit(priceDict)
             if self.currentAdjustmentLevel == self.noOfAdjustments:
-                self.exit(client)
+                self.exit(client, priceDict)
                 self.premium = 0
                 self.currentAdjustmentLevel += 1
                 self.hedge.realizedProfit += self.hedge.getLegUnRealizedProfit(priceDict)
@@ -147,12 +148,14 @@ class LEG:
     def updatePremium(self, priceDict):
         self.realizedProfit += self.getLegUnRealizedProfit(priceDict)
         self.premium = priceDict[self.token]
-        self.hedge.updatePremium(priceDict)
+        if self.hedge:
+            self.hedge.updatePremium(priceDict)
 
-    def exit(self, client):
+    def exit(self, client, priceDict):
         print("exiting leg")
-        liveUtils.order(client, self.token, self.getsymbol(), getOppTransaction(self.transactionType), self.premium, 1)
-        self.hedge.exit(client)
+        liveUtils.order(client, self.token, self.getsymbol(), getOppTransaction(self.transactionType), priceDict[self.token], 1)
+        if self.hedge:
+            self.hedge.exit(client, priceDict)
 
     def getsymbol(self):
         return Utils.index+self.exp_date+self.Strike+self.type

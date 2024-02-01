@@ -14,7 +14,8 @@ class STRADDLE:
     def getProfit(self, priceDict):
         return self.ce.getLegProfit(priceDict) + self.pe.getLegProfit(priceDict)
 
-    def setupStraddle(self, atm, client, tokenData, priceDict):
+    def setupStraddle(self, spot, client, tokenData, priceDict):
+        atm = (round(float(spot) / Utils.strikeDifference) * Utils.strikeDifference)
         self.ce.exp_date = runLive.getExpDate(tokenData)
         self.pe.exp_date = runLive.getExpDate(tokenData)
         symbolce = self.ce.getStrike(initialPremium, atm, tokenData, client)
@@ -22,7 +23,7 @@ class STRADDLE:
         self.ce.setLegPars(symbolce, tokenData, priceDict, client)
         self.pe.setLegPars(symbolpe, tokenData, priceDict, client)
         self.strikeStack = []
-        self.mean.append(atm)
+        self.mean.append(spot)
 
     def adjust(self, priceDict, spot, tokenData, client):
         cestrike = self.ce.reExecute(priceDict, tokenData, client) if self.pe.currentAdjustmentLevel==0 else 0

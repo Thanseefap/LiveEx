@@ -20,7 +20,14 @@ def getTokenDataDateFromat(date):
 def getExpDate(tokenData):
     if Utils.index == "CRUDEOIL":
         return "24FEB"
-    expDates = tokenData[tokenData.instrumentName.str.contains(Utils.index)].expiry.unique()
+    elif Utils.index == "NIFTY":
+        expDates = tokenData["symbol"][tokenData.instrumentName.str.startswith("NIFTY")].str[5:10].unique()
+    elif Utils.index == "BANKNIFTY":
+        expDates = tokenData["symbol"][tokenData.instrumentName.str.startswith("BANKNIFTY")].str[9:14].unique()
+    elif Utils.index == "SENSEX":
+        expDates = tokenData["symbol"][tokenData.instrumentName.str.startswith("SENSEX")].str[6:11].unique()
+    else:
+        pass
     for i in range(7):
         date = getTokenDataDateFromat((datetime.now() + timedelta(days=i)).strftime("%Y-%m-%d"))
         if date in expDates:
@@ -30,7 +37,7 @@ def getExpDate(tokenData):
 
 
 def getQuote(client, tokens):
-    inst_tokens = [{"instrument_token": "26009", "exchange_segment": "nse_cm"}]
+    inst_tokens = [{"instrument_token": Utils.indexToken, "exchange_segment": "nse_cm"}]
     for el in tokens:
         inst_tokens.append({"instrument_token": el, "exchange_segment": "nse_fo"})
     noOfTry = 0
@@ -51,10 +58,9 @@ def getQuote(client, tokens):
 
 
 class Live:
-    def __init__(self, client, indexToken):
+    def __init__(self, client):
         self.tokenData = liveUtils.loadTokenData()
         self.price = {}
-        self.indexToken = indexToken
         self.expDate = getExpDate(self.tokenData)
         self.currentDate = formatDate(datetime.now().strftime("%Y-%m-%d"))
         self.strategy = Strategy("sell")
