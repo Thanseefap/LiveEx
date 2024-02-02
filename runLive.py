@@ -25,7 +25,7 @@ def getExpDate(tokenData):
     elif Utils.index == "BANKNIFTY":
         expDates = tokenData["symbol"][tokenData.instrumentName.str.startswith("BANKNIFTY")].str[9:14].unique()
     elif Utils.index == "SENSEX":
-        expDates = tokenData["symbol"][tokenData.instrumentName.str.startswith("SENSEX")].str[6:11].unique()
+        expDates = tokenData["symbol"][tokenData.symbol.str.startswith("SENSEX24")].str[6:11].unique()
     else:
         pass
     for i in range(7):
@@ -58,9 +58,11 @@ def getQuote(client, tokens):
 
 
 class Live:
-    def __init__(self, client):
+    def __init__(self, client, indexToken):
+        self.mtmhit = None
         self.tokenData = liveUtils.loadTokenData()
         self.price = {}
+        self.indexToken = indexToken
         self.expDate = getExpDate(self.tokenData)
         self.currentDate = formatDate(datetime.now().strftime("%Y-%m-%d"))
         self.strategy = Strategy("sell")
@@ -76,7 +78,14 @@ class Live:
         if not self.strategy.started and datetime.now().strftime("%H:%M:%S") >= "00:00:00":
             self.strategy.start(client, self.price[self.indexToken], self.price)
         elif self.currentDate == self.expDate and datetime.now().strftime("%H:%M:%S") >= "15:29:00":
-            self.strategy.end(self.price)
+            self.strategy.end(client, self.price)
+        elif self.mtmhit or (self.strategy.started and (
+                self.strategy.straddle.getProfit(self.price) < -Utils.mtmStopLoss)):
+            if not self.mtmhit:
+                self.mtmhit = (self.strategy.straddle.getProfit(self.price))
+                self.strategy.end(client, self.price)
+                print("mtm hit at " + datetime.now().strftime("%H:%M:%S") + " for ", self.mtmhit)
+            return
         elif self.strategy.started:
             self.strategy.piyushAdjustment(self.price[self.indexToken], self.price, client)
 

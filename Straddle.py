@@ -47,10 +47,10 @@ class STRADDLE:
             self.pe.reEnter(priceDict, self.strikeStack.pop(), tokenData, client)
             print("after rematch the premiums are, ce - {}, pe - {}".format(self.ce.premium, self.pe.premium))
 
-    def exit(self, priceDict):
+    def exit(self, client, priceDict):
         profit = self.getProfit(priceDict)
-        self.ce.flush()
-        self.pe.flush()
+        self.ce.exit(client, priceDict)
+        self.pe.exit(client, priceDict)
         self.realizedProfit = 0
         self.strikeStack = 0
         return profit

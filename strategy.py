@@ -27,11 +27,11 @@ class Strategy:
         # self.hedgeAdjustment(spot, priceDict)
         self.started = True
 
-    def end(self, priceDict):
+    def end(self, client, priceDict):
         print("trade ended")
         self.started = False
         self.hedgeStrategyDirection = None
-        return self.straddle.exit(priceDict)
+        return self.straddle.exit(client,priceDict)
 
     def piyushAdjustment(self, spot, priceDict, client):
         if datetime.now().strftime("%S") in ["00", "01"]:
