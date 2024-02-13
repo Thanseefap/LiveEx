@@ -4,21 +4,8 @@ from datetime import datetime
 from urllib.request import urlopen
 import time as tm
 
-from neo_api_client import NeoAPI
 import pandas as pd
-
-
-# on_message, on_open, on_close and on_error is a call back function we will provide the response for the subscribe method.
-# access_token is an optional one. If you have barrier token then pass and consumer_key and consumer_secret will be optional.
-# environment by default uat you can pass prod to connect to live server
-def login():
-    client = NeoAPI(consumer_key="q4RDblWAAJJ6udMrdIa9lS4IxGAa", consumer_secret="vQzreB9Z5NzLbMYA1t5I0kvnBYIa",
-                    environment='Prod', on_message=None, on_error=None, on_close=None, on_open=None)
-    client.login(mobilenumber="+919447497574", password="Haya@2020")
-    client.configuration.edit_sid = "sid"
-    client.configuration.edit_token = "token"
-    # client.session_2fa(input())
-    return client
+from neo_api_client import NeoAPI
 
 
 def getQuote(token, client):
@@ -44,8 +31,6 @@ def getQuote(token, client):
                 return e
 
 
-
-
 def loadTokenData():
     url = "https://lapi.kotaksecurities.com/wso2-scripmaster/v1/prod/" + "2024-01-21" + "/transformed/nse_fo.csv"
     response = urlopen(url)
@@ -69,21 +54,6 @@ def load(name):
     return db
 
 
-def connection():
-    while "15:30:00" >= datetime.now().strftime("%H:%M:%S") >= "09:00:00":
-        try:
-            order(None, "BUY", 0, 0)
-            tm.sleep(180)
-        except:
-            continue
-
-
-def order(client, instrument_token, instrument_symbol, transaction_type, premium, quantity):
-    try:
-        # order_id = client.place_order(exchange_segment="nse_fo", product="NRML", price="", order_type="MKT", quantity=quantity, validity="DAY", trading_symbol="",
-        #            transaction_type="", amo="", disclosed_quantity="", market_protection="", pf="", trigger_price="",
-        #            tag="")
-        print(transaction_type + " : " + str(instrument_symbol) + " at " + str(premium))
-        # return order_id
-    except Exception as e:
-        print("Exception when calling OrderApi->place_order: %s\n" % e)
+def placeOrder(users, instrument_token, instrument_symbol, transaction_type, premium, quantity):
+    for user in users:
+        user.order(instrument_token, instrument_symbol, transaction_type, premium, quantity)
