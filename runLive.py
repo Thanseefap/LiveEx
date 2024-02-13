@@ -3,6 +3,8 @@ import time
 from datetime import datetime, timedelta
 
 import Utils
+import userDetails
+from Users import User
 from strategy import Strategy
 import liveUtils
 
@@ -18,6 +20,7 @@ def getTokenDataDateFromat(date):
 
 
 def getExpDate(tokenData):
+    expDates = []
     if Utils.index == "CRUDEOIL":
         return "24FEB"
     elif Utils.index == "NIFTY":
@@ -25,6 +28,10 @@ def getExpDate(tokenData):
     elif Utils.index == "BANKNIFTY":
         expDates = tokenData["symbol"][tokenData.instrumentName.str.startswith("BANKNIFTY")].str[9:14].unique()
     elif Utils.index == "SENSEX":
+        expDates = tokenData["symbol"][tokenData.symbol.str.startswith("SENSEX24")].str[6:11].unique()
+    elif Utils.index == "FINNIFTY":
+        expDates = tokenData["symbol"][tokenData.symbol.str.startswith("FINNIFTY")].str[8:13].unique()
+    elif Utils.index == "midcap":
         expDates = tokenData["symbol"][tokenData.symbol.str.startswith("SENSEX24")].str[6:11].unique()
     else:
         pass
@@ -57,8 +64,16 @@ def getQuote(client, tokens):
             time.sleep(1)
 
 
+def getAllUsers():
+    userList = []
+    for Id in userDetails.activeUsers:
+        userList.append(User(Id))
+    return userList
+
+
 class Live:
-    def __init__(self, client, indexToken):
+    def __init__(self, indexToken):
+        self.users = getAllUsers()
         self.mtmhit = None
         self.tokenData = liveUtils.loadTokenData()
         self.price = {}
@@ -76,18 +91,18 @@ class Live:
         for el in message:
             self.price[el['instrument_token']] = float(el['ltp'])
         if not self.strategy.started and datetime.now().strftime("%H:%M:%S") >= "00:00:00":
-            self.strategy.start(client, self.price[self.indexToken], self.price)
+            self.strategy.start(client, self.price[self.indexToken], self.price, self.users)
         elif self.currentDate == self.expDate and datetime.now().strftime("%H:%M:%S") >= "15:29:00":
-            self.strategy.end(client, self.price)
+            self.strategy.end(client, self.price, self.users)
         elif self.mtmhit or (self.strategy.started and (
                 self.strategy.straddle.getProfit(self.price) < -Utils.mtmStopLoss)):
             if not self.mtmhit:
                 self.mtmhit = (self.strategy.straddle.getProfit(self.price))
-                self.strategy.end(client, self.price)
+                self.strategy.end(client, self.price, self.users)
                 print("mtm hit at " + datetime.now().strftime("%H:%M:%S") + " for ", self.mtmhit)
             return
         elif self.strategy.started:
-            self.strategy.piyushAdjustment(self.price[self.indexToken], self.price, client)
+            self.strategy.piyushAdjustment(self.price[self.indexToken], self.price, client, self.users)
 
     def getAllTokens(self):
         return [self.strategy.straddle.ce.token, self.strategy.straddle.pe.token,
